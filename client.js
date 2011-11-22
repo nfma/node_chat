@@ -1,12 +1,12 @@
 var CONFIG = { debug: false
-             , nick: "#"   // set in onConnect
+             , profile: "#"   // set in onConnect
              , id: null    // set in onConnect
              , last_message_time: 1
              , focus: true //event listeners bound in onConnect
              , unread: 0 //updated in the message-processing loop
              };
 
-var nicks = [];
+var profiles = [];
 
 //  CUT  ///////////////////////////////////////////////////////////////////
 /* This license and copyright apply to all code until the next "CUT"
@@ -109,32 +109,36 @@ Date.fromString = function(str) {
 
 //updates the users link to reflect the number of active users
 function updateUsersLink ( ) {
-  var t = nicks.length.toString() + " user";
-  if (nicks.length != 1) t += "s";
+  var t = profiles.length.toString() + " user";
+  if (profiles.length != 1)
+    t += "s";
   $("#usersLink").text(t);
 }
 
 //handles another person joining chat
-function userJoin(nick, timestamp) {
+function userJoin(profile, timestamp) {
+  //TODO: find out if we want to notify other users that a user just joined the chat
   //put it in the stream
-  addMessage(nick, "joined", timestamp, "join");
+  addMessage(profile, "joined", timestamp, "join");
   //if we already know about this user, ignore it
-  for (var i = 0; i < nicks.length; i++)
-    if (nicks[i] == nick) return;
+  for (var i = 0; i < profiles.length; i++)
+    if (profiles[i] == profile) 
+      return;
   //otherwise, add the user to the list
-  nicks.push(nick);
+  profiles.push(profile);
   //update the UI
   updateUsersLink();
 }
 
 //handles someone leaving
-function userPart(nick, timestamp) {
+function userPart(profile, timestamp) {
+  //TODO: find out if we want to notify other users that a user just left the chat
   //put it in the stream
-  addMessage(nick, "left", timestamp, "part");
+  addMessage(profile, "left", timestamp, "part");
   //remove the user from the list
-  for (var i = 0; i < nicks.length; i++) {
-    if (nicks[i] == nick) {
-      nicks.splice(i,1)
+  for (var i = 0; i < profiles.length; i++) {
+    if (profiles[i] == profile) {
+      profiles.splice(i,1)
       break;
     }
   }
@@ -203,13 +207,14 @@ function addMessage (from, text, time, _class) {
     time = new Date(time);
   }
 
-  //every message you see is actually a table with 3 cols:
-  //  the time,
+  //every message you see is actually a div with paragraphs which include:
+  //  the picture,
   //  the person who caused the event,
-  //  and the content
-  var messageElement = $(document.createElement("table"));
+  //  the content
+  //  and the time
+  var messageElement = $(document.createElement("div"));
 
-  messageElement.addClass("message");
+  messageElement.addClass("feed_post_fw");
   if (_class)
     messageElement.addClass(_class);
 
@@ -217,41 +222,24 @@ function addMessage (from, text, time, _class) {
   text = util.toStaticHTML(text);
 
   // If the current user said this, add a special css class
-  var nick_re = new RegExp(CONFIG.nick);
+  var nick_re = new RegExp(CONFIG.profile['nick']);
   if (nick_re.exec(text))
     messageElement.addClass("personal");
 
   // replace URLs with links
   text = text.replace(util.urlRE, '<a target="_blank" href="$&">$&</a>');
 
-  var content = '<tr>'
-              + '  <td class="date">' + util.timeString(time) + '</td>'
-              + '  <td class="nick">' + util.toStaticHTML(from) + '</td>'
-              + '  <td class="msg-text">' + text  + '</td>'
-              + '</tr>'
-              ;
+  var content = '<p class="user_thumb"><a href="#"><img src="' + util.toStaticHTML(from.pic) + '"></a></p>'
+              + '<p class="feed_text"><a href="#" class="name">' + util.toStaticHTML(from.nick) + '</a>: '
+              + text + '<span class="smaller">' + util.timeString(time) + '</span></p>';
+
   messageElement.html(content);
 
-  //the log is the stream that we view
-  $("#log").append(messageElement);
+  //the feed_scroll is the stream that we view
+  $("#feed_scroll").append(messageElement);
 
   //always view the most recent message when it is added
   scrollDown();
-}
-
-function updateRSS () {
-  var bytes = parseInt(rss);
-  if (bytes) {
-    var megabytes = bytes / (1024*1024);
-    megabytes = Math.round(megabytes*10)/10;
-    $("#rss").text(megabytes.toString());
-  }
-}
-
-function updateUptime () {
-  if (starttime) {
-    $("#uptime").text(starttime.toRelativeTime());
-  }
 }
 
 var transmission_errors = 0;
@@ -264,13 +252,8 @@ var first_poll = true;
 // function's execution.
 function longPoll (data) {
   if (transmission_errors > 2) {
-    showConnect();
+    window.location.reload();
     return;
-  }
-
-  if (data && data.rss) {
-    rss = data.rss;
-    updateRSS();
   }
 
   //process any updates we may have
@@ -289,15 +272,15 @@ function longPoll (data) {
           if(!CONFIG.focus){
             CONFIG.unread++;
           }
-          addMessage(message.nick, message.text, message.timestamp);
+          addMessage(message.profile, message.text, message.timestamp);
           break;
 
         case "join":
-          userJoin(message.nick, message.timestamp);
+          userJoin(message.profile, message.timestamp);
           break;
 
         case "part":
-          userPart(message.nick, message.timestamp);
+          userPart(message.profile, message.timestamp);
           break;
       }
     }
@@ -318,7 +301,7 @@ function longPoll (data) {
          , dataType: "json"
          , data: { since: CONFIG.last_message_time, id: CONFIG.id }
          , error: function () {
-             addMessage("", "long poll error. trying again...", new Date(), "error");
+             addMessage({}, "long poll error. trying again...", new Date(), "error");
              transmission_errors += 1;
              //don't flood the servers on error, wait 10 seconds before retrying
              setTimeout(longPoll, 10*1000);
@@ -344,27 +327,17 @@ function send(msg) {
   }
 }
 
-//Transition the page to the state that prompts the user for a nickname
-function showConnect () {
-  $("#connect").show();
-  $("#loading").hide();
-  $("#toolbar").hide();
-  $("#nickInput").focus();
-}
-
 //transition the page to the loading screen
 function showLoad () {
-  $("#connect").hide();
   $("#loading").show();
   $("#toolbar").hide();
 }
 
 //transition the page to the main chat view, putting the cursor in the textfield
-function showChat (nick) {
+function showChat (profile) {
   $("#toolbar").show();
   $("#entry").focus();
 
-  $("#connect").hide();
   $("#loading").hide();
 
   scrollDown();
@@ -379,28 +352,18 @@ function updateTitle(){
   }
 }
 
-// daemon start time
-var starttime;
-// daemon memory usage
-var rss;
-
 //handle the server's response to our nickname and join request
 function onConnect (session) {
   if (session.error) {
     alert("error connecting: " + session.error);
-    showConnect();
     return;
   }
 
-  CONFIG.nick = session.nick;
-  CONFIG.id   = session.id;
-  starttime   = new Date(session.starttime);
-  rss         = session.rss;
-  updateRSS();
-  updateUptime();
+  CONFIG.profile = session.profile;
+  CONFIG.id      = session.id;
 
   //update the UI to show the chat
-  showChat(CONFIG.nick);
+  showChat(CONFIG.profile);
 
   //listen for browser events so we know to update the document title
   $(window).bind("blur", function() {
@@ -416,19 +379,39 @@ function onConnect (session) {
 }
 
 //add a list of present chat members to the stream
-function outputUsers () {
-  var nick_string = nicks.length > 0 ? nicks.join(", ") : "(none)";
-  addMessage("users:", nick_string, new Date(), "notice");
-  return false;
-}
+//function outputUsers () {
+  //for(profile in profiles)
+  //var nick_string = nicks.length > 0 ? profiles.join(", ") : "(none)";
+  //addMessage("users:", nick_string, new Date(), "notice");
+  //return false;
+//}
 
 //get a list of the users presently in the room, and add it to the stream
 function who () {
   jQuery.get("/who", {}, function (data, status) {
     if (status != "success") return;
-    nicks = data.nicks;
-    outputUsers();
+    profiles = data.profiles;
+    //outputUsers();
   }, "json");
+}
+
+function connect() {
+  showLoad();
+
+  var nick = "nuno";
+  var pic = "http://www.gravatar.com/avatar/f8b7c7c0454900904179c4ef58fe11d2.png";
+  //make the actual join request to the server
+  $.ajax({ cache: false
+         , type: "GET" // XXX should be POST
+         , dataType: "json"
+         , url: "/join"
+         , data: {nick:nick,pic:pic}
+         , error: function () {
+             alert("error connecting to server");
+           }
+         , success: onConnect
+         });
+  return false;
 }
 
 $(document).ready(function() {
@@ -441,54 +424,15 @@ $(document).ready(function() {
     $("#entry").attr("value", ""); // clear the entry field.
   });
 
-  $("#usersLink").click(outputUsers);
-
-  //try joining the chat when the user clicks the connect button
-  $("#connectButton").click(function () {
-    //lock the UI while waiting for a response
-    showLoad();
-    var nick = $("#nickInput").attr("value");
-
-    //dont bother the backend if we fail easy validations
-    if (nick.length > 50) {
-      alert("Nick too long. 50 character max.");
-      showConnect();
-      return false;
-    }
-
-    //more validations
-    if (/[^\w_\-^!]/.exec(nick)) {
-      alert("Bad character in nick. Can only have letters, numbers, and '_', '-', '^', '!'");
-      showConnect();
-      return false;
-    }
-
-    //make the actual join request to the server
-    $.ajax({ cache: false
-           , type: "GET" // XXX should be POST
-           , dataType: "json"
-           , url: "/join"
-           , data: { nick: nick }
-           , error: function () {
-               alert("error connecting to server");
-               showConnect();
-             }
-           , success: onConnect
-           });
-    return false;
-  });
-
-  // update the daemon uptime every 10 seconds
-  setInterval(function () {
-    updateUptime();
-  }, 10*1000);
+  updateUsersLink();
 
   if (CONFIG.debug) {
     $("#loading").hide();
-    $("#connect").hide();
     scrollDown();
     return;
   }
+
+  connect();
 
   // remove fixtures
   $("#log table").remove();
@@ -497,8 +441,6 @@ $(document).ready(function() {
   //interestingly, we don't need to join a room to get its updates
   //we just don't show the chat stream to the user until we create a session
   longPoll();
-
-  showConnect();
 });
 
 //if we can, notify the server that we're going away.

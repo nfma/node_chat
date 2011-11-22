@@ -23,8 +23,8 @@ var channel = new function () {
   var messages = [],
       callbacks = [];
 
-  this.appendMessage = function (nick, type, text) {
-    var m = { nick: nick
+  this.appendMessage = function (profile, type, text) {
+    var m = { profile: profile
             , type: type // "msg", "join", "part"
             , text: text
             , timestamp: (new Date()).getTime()
@@ -32,13 +32,13 @@ var channel = new function () {
 
     switch (type) {
       case "msg":
-        sys.puts("<" + nick + "> " + text);
+        sys.puts("<" + profile.nick + "> " + text);
         break;
       case "join":
-        sys.puts(nick + " join");
+        sys.puts(profile.nick + " join");
         break;
       case "part":
-        sys.puts(nick + " part");
+        sys.puts(profile.nick + " part");
         break;
     }
 
@@ -79,17 +79,15 @@ var channel = new function () {
 
 var sessions = {};
 
-function createSession (nick) {
-  if (nick.length > 50) return null;
-  if (/[^\w_\-^!]/.exec(nick)) return null;
-
+function createSession (profile) {
   for (var i in sessions) {
     var session = sessions[i];
-    if (session && session.nick === nick) return null;
+    if (session && session.profile && session.profile.nick === profile.nick)
+      return session;
   }
 
   var session = { 
-    nick: nick, 
+    profile: profile, 
     id: Math.floor(Math.random()*99999999999).toString(),
     timestamp: new Date(),
 
@@ -98,7 +96,7 @@ function createSession (nick) {
     },
 
     destroy: function () {
-      channel.appendMessage(session.nick, "part");
+      channel.appendMessage(session.profile, "part");
       delete sessions[session.id];
     }
   };
@@ -127,26 +125,25 @@ fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
 
-
 fu.get("/who", function (req, res) {
-  var nicks = [];
+  var profiles = [];
   for (var id in sessions) {
     if (!sessions.hasOwnProperty(id)) continue;
     var session = sessions[id];
-    nicks.push(session.nick);
+    profiles.push(session.profile);
   }
-  res.simpleJSON(200, { nicks: nicks
-                      , rss: mem.rss
-                      });
+  res.simpleJSON(200, { profiles: profiles });
 });
 
 fu.get("/join", function (req, res) {
-  var nick = qs.parse(url.parse(req.url).query).nick;
+  var parsedQS = qs.parse(url.parse(req.url).query);
+  var nick = parsedQS.nick;
+  var pic = parsedQS.pic;
   if (nick == null || nick.length == 0) {
     res.simpleJSON(400, {error: "Bad nick."});
     return;
   }
-  var session = createSession(nick);
+  var session = createSession({nick:nick,pic:pic});
   if (session == null) {
     res.simpleJSON(400, {error: "Nick in use"});
     return;
@@ -154,11 +151,9 @@ fu.get("/join", function (req, res) {
 
   //sys.puts("connection: " + nick + "@" + res.connection.remoteAddress);
 
-  channel.appendMessage(session.nick, "join");
+  channel.appendMessage(session.profile, "join");
   res.simpleJSON(200, { id: session.id
-                      , nick: session.nick
-                      , rss: mem.rss
-                      , starttime: starttime
+                      , profile: session.profile
                       });
 });
 
@@ -169,7 +164,7 @@ fu.get("/part", function (req, res) {
     session = sessions[id];
     session.destroy();
   }
-  res.simpleJSON(200, { rss: mem.rss });
+  res.simpleJSON(200, { });
 });
 
 fu.get("/recv", function (req, res) {
@@ -188,7 +183,7 @@ fu.get("/recv", function (req, res) {
 
   channel.query(since, function (messages) {
     if (session) session.poke();
-    res.simpleJSON(200, { messages: messages, rss: mem.rss });
+    res.simpleJSON(200, { messages: messages });
   });
 });
 
@@ -204,6 +199,6 @@ fu.get("/send", function (req, res) {
 
   session.poke();
 
-  channel.appendMessage(session.nick, "msg", text);
-  res.simpleJSON(200, { rss: mem.rss });
+  channel.appendMessage(session.profile, "msg", text);
+  res.simpleJSON(200, {});
 });
