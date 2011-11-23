@@ -102,6 +102,7 @@ function createSession (profile) {
   };
 
   sessions[session.id] = session;
+  sys.puts("id:" + session.id);
   return session;
 }
 
@@ -148,8 +149,6 @@ fu.get("/join", function (req, res) {
     res.simpleJSON(400, {error: "Nick in use"});
     return;
   }
-
-  //sys.puts("connection: " + nick + "@" + res.connection.remoteAddress);
 
   channel.appendMessage(session.profile, "join");
   res.simpleJSON(200, { id: session.id

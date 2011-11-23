@@ -92,7 +92,7 @@ Date.prototype.toRelativeTime = function(now_threshold) {
   // pluralize a unit when the difference is greater than 1.
   delta = Math.floor(delta);
   if (delta !== 1) { units += "s"; }
-  return [delta, units].join(" ");
+  return [delta, units].join(" ") + " ago";
 };
 
 /*
@@ -117,24 +117,20 @@ function updateUsersLink ( ) {
 
 //handles another person joining chat
 function userJoin(profile, timestamp) {
-  //TODO: find out if we want to notify other users that a user just joined the chat
-  //put it in the stream
-  addMessage(profile, "joined", timestamp, "join");
   //if we already know about this user, ignore it
   for (var i = 0; i < profiles.length; i++)
-    if (profiles[i] == profile) 
+    if (profiles[i].nick == profile.nick) 
       return;
   //otherwise, add the user to the list
   profiles.push(profile);
   //update the UI
   updateUsersLink();
+  //tell others
+  addMessage(profile, "joined", timestamp, "join");
 }
 
 //handles someone leaving
 function userPart(profile, timestamp) {
-  //TODO: find out if we want to notify other users that a user just left the chat
-  //put it in the stream
-  addMessage(profile, "left", timestamp, "part");
   //remove the user from the list
   for (var i = 0; i < profiles.length; i++) {
     if (profiles[i] == profile) {
@@ -144,6 +140,8 @@ function userPart(profile, timestamp) {
   }
   //update the UI
   updateUsersLink();
+  //put it in the stream
+  addMessage(profile, "left", timestamp, "part");
 }
 
 // utility functions
@@ -182,10 +180,21 @@ util = {
   isBlank: function(text) {
     var blank = /^\s*$/;
     return (text.match(blank) !== null);
+  },
+
+  parseUrlParameters: function(url) { 
+    var result = {}; 
+    var parameters = /https?:\/\/[-\w\.]+(:\d+)?(\/[^\s?]*(\?(\S+))?)?/g.exec(url)[4].split("&"); 
+    for (k in parameters) { 
+      var kva = parameters[k].split("="); 
+      result[kva[0]] = kva[1];
+    } 
+    return result;
   }
 };
 
 //used to keep the most recent messages visible
+//might be broken at the moment
 function scrollDown () {
   window.scrollBy(0, 100000000000000000);
   $("#entry").focus();
@@ -231,7 +240,7 @@ function addMessage (from, text, time, _class) {
 
   var content = '<p class="user_thumb"><a href="#"><img src="' + util.toStaticHTML(from.pic) + '"></a></p>'
               + '<p class="feed_text"><a href="#" class="name">' + util.toStaticHTML(from.nick) + '</a>: '
-              + text + '<span class="smaller">' + util.timeString(time) + '</span></p>';
+              + text + ' <span class="smaller">' + util.timeString(time) + '</span></p>';
 
   messageElement.html(content);
 
@@ -337,7 +346,6 @@ function showLoad () {
 function showChat (profile) {
   $("#toolbar").show();
   $("#entry").focus();
-
   $("#loading").hide();
 
   scrollDown();
@@ -398,19 +406,20 @@ function who () {
 function connect() {
   showLoad();
 
-  var nick = "nuno";
-  var pic = "http://www.gravatar.com/avatar/f8b7c7c0454900904179c4ef58fe11d2.png";
-  //make the actual join request to the server
-  $.ajax({ cache: false
-         , type: "GET" // XXX should be POST
-         , dataType: "json"
-         , url: "/join"
-         , data: {nick:nick,pic:pic}
-         , error: function () {
-             alert("error connecting to server");
-           }
-         , success: onConnect
-         });
+  var params = util.parseUrlParameters(window.location);
+  if (params.nick && params.pic) {
+    //make the actual join request to the server
+    $.ajax({ cache: false
+           , type: "GET" // XXX should be POST
+           , dataType: "json"
+           , url: "/join"
+           , data: {nick:params.nick,pic:params.pic}
+           , error: function () {
+               alert("error connecting to server");
+             }
+           , success: onConnect
+           });
+  }
   return false;
 }
 
@@ -434,9 +443,6 @@ $(document).ready(function() {
 
   connect();
 
-  // remove fixtures
-  $("#log table").remove();
-
   //begin listening for updates right away
   //interestingly, we don't need to join a room to get its updates
   //we just don't show the chat stream to the user until we create a session
@@ -447,3 +453,5 @@ $(document).ready(function() {
 $(window).unload(function () {
   jQuery.get("/part", {id: CONFIG.id}, function (data) { }, "json");
 });
+
+// reload page every 10s
