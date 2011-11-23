@@ -147,8 +147,6 @@ function userPart(profile, timestamp) {
 // utility functions
 
 util = {
-  urlRE: /https?:\/\/([-\w\.]+)+(:\d+)?(\/([^\s]*(\?\S+)?)?)?/g, 
-
   //  html sanitizer 
   toStaticHTML: function(inputHtml) {
     inputHtml = inputHtml.toString();
@@ -227,16 +225,10 @@ function addMessage (from, text, time, _class) {
   if (_class)
     messageElement.addClass(_class);
 
-  // sanitize
-  text = util.toStaticHTML(text);
-
   // If the current user said this, add a special css class
   var nick_re = new RegExp(CONFIG.profile['nick']);
   if (nick_re.exec(text))
     messageElement.addClass("personal");
-
-  // replace URLs with links
-  text = text.replace(util.urlRE, '<a target="_blank" href="$&">$&</a>');
 
   var content = '<p class="user_thumb"><a href="#"><img src="' + util.toStaticHTML(from.pic) + '"></a></p>'
               + '<p class="feed_text"><a href="#" class="name">' + util.toStaticHTML(from.nick) + '</a>: '
@@ -278,6 +270,7 @@ function longPoll (data) {
       //dispatch new messages to their appropriate handlers
       switch (message.type) {
         case "msg":
+        case "rmsg":
           if(!CONFIG.focus){
             CONFIG.unread++;
           }
@@ -332,6 +325,7 @@ function send(msg) {
   if (CONFIG.debug === false) {
     // XXX should be POST
     // XXX should add to messages immediately
+
     jQuery.get("/send", {id: CONFIG.id, text: msg}, function (data) { }, "json");
   }
 }

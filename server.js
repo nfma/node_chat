@@ -19,13 +19,26 @@ var fu = require("./fu"),
 var MESSAGE_BACKLOG = 200,
     SESSION_TIMEOUT = 60 * 1000;
 
+var util = {
+  urlRE: /https?:\/\/([-\w\.]+)+(:\d+)?(\/([^\s]*(\?\S+)?)?)?/g, 
+
+  //  html sanitizer 
+  toStaticHTML: function(inputHtml) {
+    inputHtml = inputHtml.toString();
+    return inputHtml.replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+  }
+};
+
+
 var channel = new function () {
   var messages = [],
       callbacks = [];
 
   this.appendMessage = function (profile, type, text) {
     var m = { profile: profile
-            , type: type // "msg", "join", "part"
+            , type: type // "rmsg", "msg", "join", "part"
             , text: text
             , timestamp: (new Date()).getTime()
             };
@@ -33,6 +46,9 @@ var channel = new function () {
     switch (type) {
       case "msg":
         sys.puts("<" + profile.nick + "> " + text);
+        break;
+      case "rmsg":
+        sys.puts("as <" + profile.nick + "> " + text);
         break;
       case "join":
         sys.puts(profile.nick + " join");
@@ -198,6 +214,28 @@ fu.get("/send", function (req, res) {
 
   session.poke();
 
+  // sanitize
+  text = util.toStaticHTML(text);
+
+  // replace URLs with links
+  text = text.replace(util.urlRE, '<a target="_blank" href="$&">$&</a>');
+
   channel.appendMessage(session.profile, "msg", text);
+  res.simpleJSON(200, {});
+});
+
+fu.get("/rsend", function (req, res) {
+  var id = qs.parse(url.parse(req.url).query).id;
+  var text = qs.parse(url.parse(req.url).query).text;
+
+  var session = sessions[id];
+  if (!session || !text) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  session.poke();
+
+  channel.appendMessage(session.profile, "rmsg", text);
   res.simpleJSON(200, {});
 });
