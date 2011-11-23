@@ -12,6 +12,7 @@ setInterval(function () {
 
 
 var fu = require("./fu"),
+    db = require("./db"),
     sys = require("sys"),
     url = require("url"),
     qs = require("querystring");
@@ -59,6 +60,7 @@ var channel = new function () {
     }
 
     messages.push( m );
+    db.log(m.profile.nick, m.text, new Date(), m.type);
 
     while (callbacks.length > 0) {
       callbacks.shift().callback([m]);
