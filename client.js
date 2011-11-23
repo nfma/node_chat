@@ -289,11 +289,8 @@ function longPoll (data) {
     //update the document title to include unread message count if blurred
     updateTitle();
 
-    //only after the first request for messages do we want to show who is here
-    if (first_poll) {
-      first_poll = false;
-      who();
-    }
+    //update profiles
+    who();
   }
 
   //make another request
@@ -393,7 +390,7 @@ function who () {
   jQuery.get("/who", {}, function (data, status) {
     if (status != "success") return;
     profiles = data.profiles;
-    //outputUsers();
+    updateUsersLink();
   }, "json");
 }
 

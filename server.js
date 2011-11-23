@@ -1,16 +1,6 @@
 HOST = null; // localhost
 PORT = 8001;
 
-// when the daemon started
-var starttime = (new Date()).getTime();
-
-var mem = process.memoryUsage();
-// every 10 seconds poll for the memory.
-setInterval(function () {
-  mem = process.memoryUsage();
-}, 10*1000);
-
-
 var fu = require("./fu"),
     db = require("./db"),
     sys = require("sys"),
@@ -32,6 +22,7 @@ var util = {
   }
 };
 
+var size = 0;
 
 var channel = new function () {
   var messages = [],
@@ -60,7 +51,7 @@ var channel = new function () {
     }
 
     messages.push( m );
-    db.log(m.profile.nick, m.text, new Date(), m.type);
+    db.log(m.profile.nick, m.text, new Date(), m.type, size);
 
     while (callbacks.length > 0) {
       callbacks.shift().callback([m]);
@@ -115,11 +106,13 @@ function createSession (profile) {
 
     destroy: function () {
       channel.appendMessage(session.profile, "part");
+      size--;
       delete sessions[session.id];
     }
   };
 
   sessions[session.id] = session;
+  size++;
   sys.puts("id:" + session.id);
   return session;
 }
