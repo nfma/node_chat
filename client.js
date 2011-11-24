@@ -253,7 +253,6 @@ var first_poll = true;
 // function's execution.
 function longPoll (data) {
   if (transmission_errors > 2) {
-    alert('about to reload!');
     window.location.reload();
     return;
   }
