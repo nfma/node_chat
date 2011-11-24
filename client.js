@@ -253,6 +253,7 @@ var first_poll = true;
 // function's execution.
 function longPoll (data) {
   if (transmission_errors > 2) {
+    alert('about to reload!');
     window.location.reload();
     return;
   }
@@ -300,7 +301,7 @@ function longPoll (data) {
          , dataType: "json"
          , data: { since: CONFIG.last_message_time, id: CONFIG.id }
          , error: function () {
-             addMessage({}, "long poll error. trying again...", new Date(), "error");
+             addMessage({nick:'error',pic:''}, "long poll error. trying again...", new Date(), "error");
              transmission_errors += 1;
              //don't flood the servers on error, wait 10 seconds before retrying
              setTimeout(longPoll, 10*1000);
