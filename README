@@ -1,4 +1,21 @@
-Demo for node.js http://tinyclouds.org/node
+Chat app
+ 
+install node.js (follow intructions on the link below)
+http://nodejs.org/#download
 
-to run
-$ /usr/local/bin/node server.js
+Though it's not necessary you have to install the mysql modules:
+
+install npm (node gem-like package manager):
+$ curl http://npmjs.org/install.sh | sh
+
+run
+$ npm install mysql
+
+if you want you can use the mysql database to store the chat logs
+but it must have the following definitions:
+db_name = serious_beats
+user = serious
+password = beats
+
+to run the chat app
+$ node server.js (runs on port 8001)
