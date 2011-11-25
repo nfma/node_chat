@@ -6,7 +6,7 @@ http://nodejs.org/#download
 Though it's not necessary you have to install the mysql modules:
 
 install npm (node gem-like package manager):
-$ curl http://npmjs.org/install.sh | sh
+$ curl http://npmjs.org/install.sh | sudo sh
 
 run
 $ npm install mysql

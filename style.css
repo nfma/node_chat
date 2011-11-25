@@ -1,15 +1,12 @@
 body {
   padding: 0;
   margin: 0;
+  background-color: white;
 }
-body, #entry {
-  background: #22252a;
-  color: #eee;
-}
+body, #entry {}
 body, table {
   font-family: DejaVu Sans Mono, fixed; 
-  font-size: 14pt;
-  line-height: 150%;
+  font-size: 10px;
 }
 tr,td,table {
   padding: 0;
@@ -27,7 +24,6 @@ a { text-decoration: none; color: #888; }
 a:hover { text-decoration: underline; color: #aaa; }
 
 #loading, #connect {
-  background: #22252a;
   position: fixed;
   top: 0;
   left: 0;
@@ -47,10 +43,8 @@ a:hover { text-decoration: underline; color: #aaa; }
 
 #toolbar {
   position: fixed;
-  color: #fff;
-  width: 100%; 
-  bottom: 0;
-  background: #733;
+  width: 100%;
+  background-color: #888;
 }
 
 #entry {
@@ -61,6 +55,7 @@ a:hover { text-decoration: underline; color: #aaa; }
   border-width: 0;
   outline-width: 0;
   clear: both;
+  background-color: #888;
 }
 
 #log {
@@ -71,10 +66,14 @@ a:hover { text-decoration: underline; color: #aaa; }
   overflow: hidden;
 }
 
+#feed_scroll {
+  padding-top:50px;
+}
+
 /* not very important info */
-.notice td, .join td, .part td, .message .date { color: #555; }
+.notice td, .join td, .part td, .message .date { }
 .error td { color: #933; }
-.personal .nick, .notice .nick { color: #cd5; }
+.personal .nick, .notice .nick { }
 
 .message {
   margin: 0.1em 0;
