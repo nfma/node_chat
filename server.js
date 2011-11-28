@@ -97,7 +97,7 @@ function createSession (profile) {
 
   var session = { 
     profile: profile, 
-    id: Math.floor(Math.random()*99999999999).toString(),
+    id: profile.id, 
     timestamp: new Date(),
 
     poke: function () {
@@ -151,11 +151,12 @@ fu.get("/join", function (req, res) {
   var parsedQS = qs.parse(url.parse(req.url).query);
   var nick = decodeURIComponent(parsedQS.nick);
   var pic = parsedQS.pic;
-  if (nick == null || nick.length == 0) {
-    res.simpleJSON(400, {error: "Bad nick."});
+  var id = parsedQS.id;
+  if (nick == null || nick.length == 0 || pic == null || pic.length == 0 || id == null || id.length == 0) {
+    res.simpleJSON(400, {error: "You have to provide a valid nick, pick and id."});
     return;
   }
-  var session = createSession({nick:nick,pic:pic});
+  var session = createSession({nick:nick,pic:pic,id:id});
   if (session == null) {
     res.simpleJSON(400, {error: "Nick in use"});
     return;

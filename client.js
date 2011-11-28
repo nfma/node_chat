@@ -402,19 +402,20 @@ function connect() {
   showLoad();
 
   var params = util.parseUrlParameters(window.location);
-  if (params.nick && params.pic) {
+  if (params.nick && params.pic && params.id) {
     //make the actual join request to the server
     $.ajax({ cache: false
            , type: "GET" // XXX should be POST
            , dataType: "json"
            , url: "/join"
-           , data: {nick:params.nick,pic:params.pic}
+           , data: {nick:params.nick,pic:params.pic,id:params.id}
            , error: function () {
                alert("error connecting to server");
              }
            , success: onConnect
            });
   }
+  // output the online users nicks when clicking on the number of users
   $("#usersLink").click(outputUsers);
   return false;
 }
