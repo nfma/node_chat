@@ -379,12 +379,15 @@ function onConnect (session) {
 }
 
 //add a list of present chat members to the stream
-//function outputUsers () {
-  //for(profile in profiles)
-  //var nick_string = nicks.length > 0 ? profiles.join(", ") : "(none)";
-  //addMessage("users:", nick_string, new Date(), "notice");
-  //return false;
-//}
+function outputUsers () {
+  var result = "";
+  for(idx in profiles) {
+    result = result + profiles[idx].nick + ", ";
+  }
+  result = result == "" ? "(none)" : result.substring(0, result.length - 2);
+  addMessage({nick:"users",pic:"#"}, result, new Date(), "notice");
+  return false;
+}
 
 //get a list of the users presently in the room, and add it to the stream
 function who () {
@@ -412,6 +415,7 @@ function connect() {
            , success: onConnect
            });
   }
+  $("#usersLink").click(outputUsers);
   return false;
 }
 
