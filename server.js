@@ -152,11 +152,12 @@ fu.get("/join", function (req, res) {
   var nick = decodeURIComponent(parsedQS.nick);
   var pic = parsedQS.pic;
   var id = parsedQS.id;
-  if (nick == null || nick.length == 0 || pic == null || pic.length == 0 || id == null || id.length == 0) {
-    res.simpleJSON(400, {error: "You have to provide a valid nick, pick and id."});
+  var has_chatted = parsedQS.has_chatted;
+  if (nick == null || nick.length == 0 || pic == null || pic.length == 0 || id == null || id.length == 0 || has_chatted == null || has_chatted.length == 0) {
+    res.simpleJSON(400, {error: "You have to provide a valid nick, pick, has_chatted and id."});
     return;
   }
-  var session = createSession({nick:nick,pic:pic,id:id});
+  var session = createSession({nick:nick,pic:pic,id:id,has_chatted:has_chatted});
   if (session == null) {
     res.simpleJSON(400, {error: "Nick in use"});
     return;

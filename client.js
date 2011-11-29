@@ -252,7 +252,7 @@ var first_poll = true;
 // is being made from the response handler, and not at some point during the
 // function's execution.
 function longPoll (data) {
-  if (transmission_errors > 2) {
+  if (transmission_errors > 1) {
     window.location.reload();
     return;
   }
@@ -402,13 +402,13 @@ function connect() {
   showLoad();
 
   var params = util.parseUrlParameters(window.location);
-  if (params.nick && params.pic && params.id) {
+  if (params.nick && params.pic && params.id && params.has_chatted) {
     //make the actual join request to the server
     $.ajax({ cache: false
            , type: "GET" // XXX should be POST
            , dataType: "json"
            , url: "/join"
-           , data: {nick:params.nick,pic:params.pic,id:params.id}
+           , data: {nick:params.nick,pic:params.pic,id:params.id,has_chatted:params.has_chatted}
            , error: function () {
                alert("error connecting to server");
              }
@@ -428,6 +428,12 @@ $(document).ready(function() {
     var msg = $("#entry").attr("value").replace("\n", "");
     if (!util.isBlank(msg)) send(msg);
     $("#entry").attr("value", ""); // clear the entry field.
+
+    // tell the top app that the user used the chat
+    if (CONFIG.profile.has_chatted == "false") {
+      CONFIG.profile.has_chatted = "true";
+      parent.chatUsed();
+    }
   });
 
   updateUsersLink();
