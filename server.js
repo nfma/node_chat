@@ -62,12 +62,9 @@ var channel = new function () {
   };
 
   this.query = function (since, callback) {
-    var matching = [];
-    for (var i = 0; i < messages.length; i++) {
-      var message = messages[i];
-      if (message.timestamp > since)
-        matching.push(message)
-    }
+    var matching = messages.filter(function(message) {
+      return message.timestamp > since;
+    });
 
     if (matching.length != 0) {
       callback(matching);
@@ -89,6 +86,7 @@ var channel = new function () {
 var sessions = {};
 
 function createSession (profile) {
+  // unfortunately can't find a good functinal replacement for this
   for (var i in sessions) {
     var session = sessions[i];
     if (session && session.profile && session.profile.nick === profile.nick)
@@ -120,14 +118,10 @@ function createSession (profile) {
 // interval to kill off old sessions
 setInterval(function () {
   var now = new Date();
-  for (var id in sessions) {
-    if (!sessions.hasOwnProperty(id)) continue;
-    var session = sessions[id];
-
-    if (now - session.timestamp > SESSION_TIMEOUT) {
+  Object.keys(sessions).forEach(function(key) {
+    if(now - sessions[key].timestamp > SESSION_TIMEOUT)
       session.destroy();
-    }
-  }
+  });
 }, 1000);
 
 fu.listen(Number(process.env.PORT || PORT), HOST);
@@ -138,26 +132,21 @@ fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
 
 fu.get("/who", function (req, res) {
-  var profiles = [];
-  for (var id in sessions) {
-    if (!sessions.hasOwnProperty(id)) continue;
-    var session = sessions[id];
-    profiles.push(session.profile);
-  }
+  var profiles = Object.keys(sessions).reduce(function(result, key) {
+    result.push(sessions[key].profile);
+    return result;
+  }, []);
   res.simpleJSON(200, { profiles: profiles });
 });
 
 fu.get("/join", function (req, res) {
-  var parsedQS = qs.parse(url.parse(req.url).query);
-  var nick = decodeURIComponent(parsedQS.nick);
-  var pic = parsedQS.pic;
-  var id = parsedQS.id;
-  var has_chatted = parsedQS.has_chatted;
-  if (nick == null || nick.length == 0 || pic == null || pic.length == 0 || id == null || id.length == 0 || has_chatted == null || has_chatted.length == 0) {
+  var pqs = qs.parse(url.parse(req.url).query);
+  var nick = decodeURIComponent(pqs.nick);
+  if (nick == null || nick.length == 0 || pqs.pic == null || pqs.pic.length == 0 || pqs.id == null || pqs.id.length == 0 || pqs.has_chatted == null || pqs.has_chatted.length == 0) {
     res.simpleJSON(400, {error: "You have to provide a valid nick, pick, has_chatted and id."});
     return;
   }
-  var session = createSession({nick:nick,pic:pic,id:id,has_chatted:has_chatted});
+  var session = createSession({nick:nick,pic:pqs.pic,id:pqs.id,has_chatted:pqs.has_chatted});
   if (session == null) {
     res.simpleJSON(400, {error: "Nick in use"});
     return;
@@ -180,18 +169,18 @@ fu.get("/part", function (req, res) {
 });
 
 fu.get("/recv", function (req, res) {
-  if (!qs.parse(url.parse(req.url).query).since) {
+  var pqs = qs.parse(url.parse(req.url).query);
+  if (!pqs.since) {
     res.simpleJSON(400, { error: "Must supply since parameter" });
     return;
   }
-  var id = qs.parse(url.parse(req.url).query).id;
   var session;
-  if (id && sessions[id]) {
-    session = sessions[id];
+  if (pqs.id && sessions[pqs.id]) {
+    session = sessions[pqs.id];
     session.poke();
   }
 
-  var since = parseInt(qs.parse(url.parse(req.url).query).since, 10);
+  var since = parseInt(pqs.since, 10);
 
   channel.query(since, function (messages) {
     if (session) session.poke();
@@ -200,11 +189,10 @@ fu.get("/recv", function (req, res) {
 });
 
 fu.get("/send", function (req, res) {
-  var id = qs.parse(url.parse(req.url).query).id;
-  var text = qs.parse(url.parse(req.url).query).text;
+  var pqs = qs.parse(url.parse(req.url).query);
 
-  var session = sessions[id];
-  if (!session || !text) {
+  var session = sessions[pqs.id];
+  if (!session || !pqs.text) {
     res.simpleJSON(400, { error: "No such session id" });
     return;
   }
@@ -212,7 +200,7 @@ fu.get("/send", function (req, res) {
   session.poke();
 
   // sanitize
-  text = util.toStaticHTML(text);
+  text = util.toStaticHTML(pqs.text);
 
   // replace URLs with links
   text = text.replace(util.urlRE, '<a target="_blank" href="$&">$&</a>');
@@ -222,17 +210,16 @@ fu.get("/send", function (req, res) {
 });
 
 fu.get("/rsend", function (req, res) {
-  var id = qs.parse(url.parse(req.url).query).id;
-  var text = qs.parse(url.parse(req.url).query).text;
+  var pqs = qs.parse(url.parse(req.url).query);
 
-  var session = sessions[id];
-  if (!session || !text) {
+  var session = sessions[pqs.id];
+  if (!session || !pqs.text) {
     res.simpleJSON(400, { error: "No such session id" });
     return;
   }
 
   session.poke();
 
-  channel.appendMessage(session.profile, "rmsg", text);
+  channel.appendMessage(session.profile, "rmsg", pqs.text);
   res.simpleJSON(200, {});
 });

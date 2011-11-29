@@ -226,7 +226,7 @@ function addMessage (from, text, time, _class) {
     messageElement.addClass(_class);
 
   // If the current user said this, add a special css class
-  var nick_re = new RegExp(CONFIG.profile['nick']);
+  var nick_re = new RegExp(CONFIG.profile.nick);
   if (nick_re.exec(text))
     messageElement.addClass("personal");
 
@@ -260,9 +260,7 @@ function longPoll (data) {
   //process any updates we may have
   //data will be null on the first call of longPoll
   if (data && data.messages) {
-    for (var i = 0; i < data.messages.length; i++) {
-      var message = data.messages[i];
-
+    data.messages.forEach(function(message) {
       //track oldest message so we only request newer messages from server
       if (message.timestamp > CONFIG.last_message_time)
         CONFIG.last_message_time = message.timestamp;
@@ -285,7 +283,8 @@ function longPoll (data) {
           userPart(message.profile, message.timestamp);
           break;
       }
-    }
+    });
+
     //update the document title to include unread message count if blurred
     updateTitle();
 
@@ -320,12 +319,7 @@ function longPoll (data) {
 
 //submit a new message to the server
 function send(msg) {
-  if (CONFIG.debug === false) {
-    // XXX should be POST
-    // XXX should add to messages immediately
-
-    jQuery.get("/send", {id: CONFIG.id, text: msg}, function (data) { }, "json");
-  }
+  jQuery.get("/send", {id: CONFIG.id, text: msg}, function (data) { }, "json");
 }
 
 //transition the page to the loading screen
@@ -380,12 +374,10 @@ function onConnect (session) {
 
 //add a list of present chat members to the stream
 function outputUsers () {
-  var result = "";
-  for(idx in profiles) {
-    result = result + profiles[idx].nick + ", ";
-  }
-  result = result == "" ? "(none)" : result.substring(0, result.length - 2);
-  addMessage({nick:"users",pic:"#"}, result, new Date(), "notice");
+  var users = profiles.map(function(profile) {
+    return profile.nick;
+  }).join(", ");
+  addMessage({nick:"users",pic:"#"}, users, new Date(), "notice");
   return false;
 }
 
