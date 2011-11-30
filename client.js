@@ -252,7 +252,7 @@ var first_poll = true;
 // is being made from the response handler, and not at some point during the
 // function's execution.
 function longPoll (data) {
-  if (transmission_errors > 1) {
+  if (transmission_errors > 0) {
     window.location.reload();
     return;
   }
