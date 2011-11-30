@@ -1,5 +1,5 @@
 HOST = null; // localhost
-PORT = 8001;
+PORT = 5000;
 
 var fu = require("./fu"),
     db = require("./db"),
@@ -120,7 +120,7 @@ setInterval(function () {
   var now = new Date();
   Object.keys(sessions).forEach(function(key) {
     if(now - sessions[key].timestamp > SESSION_TIMEOUT)
-      session.destroy();
+      sessions[key].destroy();
   });
 }, 1000);
 
