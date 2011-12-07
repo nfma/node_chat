@@ -1,19 +1,42 @@
 <html>
   <head>
+    <link type="text/css" href="jquery.jscrollpane.css" rel="stylesheet" media="screen" />
     <link rel="stylesheet" href="style.css" type="text/css"/>
     <script src="jquery-1.2.6.min.js" type="text/javascript"></script>
     <script src="client.js" type="text/javascript"></script>
+    <script type="text/javascript" src="jquery.jscrollpane.js"></script>
     <title>node chat</title>
+    <script type="text/javascript">   
+      $(function()
+      {
+        $('.scroll').jScrollPane(
+          {
+            verticalDragMinHeight: 20,
+            verticalDragMaxHeight: 100
+          }
+        );
+      });
+    </script>
   </head>
   <body>
-    <div id="app">
-      <div id="toolbar">
-        <ul id="status">
-          <li><a id="usersLink" href="#"></a></li>
-        </ul>
-        <input tabindex="1" type="text" id="entry"/>
+      <div class="right_box chat">
+        <div class="header">
+          <h2>Chat &amp; Live Feed</h2>
+        </div>
+        <div class="content" id="app">
+          <div class="post" id="toolbar">
+            <div class="fw" id="status">
+              <p class="thumb" id="user_thumb"></p>
+              <textarea id="entry"></textarea>
+            </div>
+            <div class="fw">
+              <p class="user_nr"><a id="usersLink" href="#"></a></p>
+              <p class="post_btn"><a href="#" id="post">Posten</a></p>
+            </div>
+          </div>
+          <div id="loading"><p>loading...</p></div>
+          <div class="feed scroll" id="feed_scroll"></div>
+        </div>
       </div>
-      <div id="loading"><p>loading</p></div>
-      <div id="feed_scroll"> </div>
   </body>
 </html>

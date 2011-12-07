@@ -130,6 +130,13 @@ fu.get("/", fu.staticHandler("index.html"));
 fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
+fu.get("/jquery.jscrollpane.js", fu.staticHandler("jquery.jscrollpane.js"));
+fu.get("/jquery.jscrollpane.css", fu.staticHandler("jquery.jscrollpane.css"));
+fu.get("/images/user_thumb.png", fu.staticHandler("images/user_thumb.png"));
+fu.get("/fonts/futura-condensedmedium-webfont.eot", fu.staticHandler("fonts/futura-condensedmedium-webfont.eot"));
+fu.get("/fonts/futura-condensedmedium-webfont.svg", fu.staticHandler("fonts/futura-condensedmedium-webfont.svg"));
+fu.get("/fonts/futura-condensedmedium-webfont.ttf", fu.staticHandler("fonts/futura-condensedmedium-webfont.ttf"));
+fu.get("/fonts/futura-condensedmedium-webfont.woff", fu.staticHandler("fonts/futura-condensedmedium-webfont.woff"));
 
 fu.get("/who", function (req, res) {
   var profiles = Object.keys(sessions).reduce(function(result, key) {

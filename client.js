@@ -109,9 +109,10 @@ Date.fromString = function(str) {
 
 //updates the users link to reflect the number of active users
 function updateUsersLink ( ) {
-  var t = profiles.length.toString() + " user";
+  var t = profiles.length.toString() + " DJ";
   if (profiles.length != 1)
     t += "s";
+  t += " online";
   $("#usersLink").text(t);
 }
 
@@ -219,9 +220,10 @@ function addMessage (from, text, time, _class) {
   //  the person who caused the event,
   //  the content
   //  and the time
+  
   var messageElement = $(document.createElement("div"));
 
-  messageElement.addClass("feed_post_fw");
+  messageElement.addClass("feed_post");
   if (_class)
     messageElement.addClass(_class);
 
@@ -230,17 +232,23 @@ function addMessage (from, text, time, _class) {
   if (nick_re.exec(text))
     messageElement.addClass("personal");
 
-  var content = '<p class="user_thumb"><a href="#"><img src="' + util.toStaticHTML(from.pic) + '"></a></p>'
+  var content = '<p class="thumb"><img src="' + util.toStaticHTML(from.pic) + '"></p>'
               + '<p class="feed_text"><a href="#" class="name">' + util.toStaticHTML(from.nick) + '</a>: '
               + text + ' <span class="smaller">' + util.timeString(time) + '</span></p>';
 
   messageElement.html(content);
 
   //the feed_scroll is the stream that we view
-  $("#feed_scroll").append(messageElement);
+  $(".jspPane").prepend(messageElement);
+  $('.scroll').jScrollPane(
+    {
+      verticalDragMinHeight: 20,
+      verticalDragMaxHeight: 100
+    }
+  );
 
   //always view the most recent message when it is added
-  scrollDown();
+  //scrollDown();
 }
 
 var transmission_errors = 0;
@@ -276,11 +284,11 @@ function longPoll (data) {
           break;
 
         case "join":
-          userJoin(message.profile, message.timestamp);
+          //userJoin(message.profile, message.timestamp);
           break;
 
         case "part":
-          userPart(message.profile, message.timestamp);
+          //userPart(message.profile, message.timestamp);
           break;
       }
     });
@@ -334,7 +342,7 @@ function showChat (profile) {
   $("#entry").focus();
   $("#loading").hide();
 
-  scrollDown();
+  //scrollDown();
 }
 
 //we want to show a count of unread messages when the window does not have focus
@@ -370,6 +378,10 @@ function onConnect (session) {
     CONFIG.unread = 0;
     updateTitle();
   });
+  
+  //show user thumb
+  $('#user_thumb').html('<img src="' + CONFIG.profile.pic + '" />');
+  
 }
 
 //add a list of present chat members to the stream
@@ -412,32 +424,45 @@ function connect() {
   return false;
 }
 
+function postMsg() {
+  var msg = $("#entry").val().replace("\n", "");
+  if (!util.isBlank(msg)) send(msg);
+  $("#entry").val(''); // clear the entry field.
+}
+
+function userUsedChat() {
+  // tell the top app that the user used the chat
+  if (CONFIG.profile.has_chatted == "false") {
+    CONFIG.profile.has_chatted = "true";
+    parent.chatUsed();
+  }
+}
+
 $(document).ready(function() {
 
   //submit new messages when the user hits enter if the message isnt blank
   $("#entry").keypress(function (e) {
     if (e.keyCode != 13 /* Return */) return;
-    var msg = $("#entry").attr("value").replace("\n", "");
-    if (!util.isBlank(msg)) send(msg);
-    $("#entry").attr("value", ""); // clear the entry field.
+    postMsg();
+    userUsedChat();
+  });
 
-    // tell the top app that the user used the chat
-    if (CONFIG.profile.has_chatted == "false") {
-      CONFIG.profile.has_chatted = "true";
-      parent.chatUsed();
-    }
+  $('#post').click(function () {
+    postMsg();
+    userUsedChat()
   });
 
   updateUsersLink();
 
   if (CONFIG.debug) {
     $("#loading").hide();
-    scrollDown();
+    //scrollDown();
     return;
   }
 
   connect();
-
+  
+  
   //begin listening for updates right away
   //interestingly, we don't need to join a room to get its updates
   //we just don't show the chat stream to the user until we create a session
