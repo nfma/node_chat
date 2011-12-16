@@ -4,6 +4,8 @@ var CONFIG = { debug: false
              , last_message_time: 1
              , focus: true //event listeners bound in onConnect
              , unread: 0 //updated in the message-processing loop
+             , ping_timeout: 10 * 1000
+             , ping: null
              };
 
 var profiles = [];
@@ -145,6 +147,11 @@ function userPart(profile, timestamp) {
   addMessage(profile, "left", timestamp, "part");
 }
 
+//handles pings
+function rcvPing(profile, timestamp) {
+  addMessage(profile, "ping", timestamp, "ping");
+}
+
 // utility functions
 
 util = {
@@ -260,7 +267,7 @@ var first_poll = true;
 // is being made from the response handler, and not at some point during the
 // function's execution.
 function longPoll (data) {
-  if (transmission_errors > 0) {
+  if (transmission_errors > 2) {
     window.location.reload();
     return;
   }
@@ -290,6 +297,10 @@ function longPoll (data) {
         case "part":
           //userPart(message.profile, message.timestamp);
           break;
+
+        case "ping":
+          rcvPing(message.profile, message.timestamp);
+          break;
       }
     });
 
@@ -315,6 +326,7 @@ function longPoll (data) {
            }
          , success: function (data) {
              transmission_errors = 0;
+             clearTimeout(ping);
              //if everything went well, begin another request immediately
              //the server will take a long time to respond
              //how long? well, it will wait until there is another message
@@ -323,11 +335,19 @@ function longPoll (data) {
              longPoll(data);
            }
          });
+  
+  //send a ping if we don't get a response within CONFIG.ping_timeout
+  ping = setTimeout(sendPing, CONFIG.ping_timeout);
 }
 
 //submit a new message to the server
 function send(msg) {
   jQuery.get("/send", {id: CONFIG.id, text: msg}, function (data) { }, "json");
+}
+
+//submit a ping to the server
+function sendPing() {
+  jQuery.get("/ping", {id: CONFIG.id}, function (data) {}, "json");
 }
 
 //transition the page to the loading screen
