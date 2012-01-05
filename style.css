@@ -308,6 +308,27 @@ a.rpl { cursor: pointer; }
 }
 * html .feed_post { height: 1%; }
 
+.activity .thumb { display: none; }
+.activity .feed_text .name,
+.activity .feed_text .colon,
+.activity .feed_text .smaller { display: none; }
+.notice .feed_text, .activity .feed_text { 
+  width: 192px;
+  color: #333;
+}
+.activity .feed_text a { color: #333; }
+.chat_view, .chat_like, .chat_tag {
+  display: block;
+  padding-left: 25px;
+  min-height: 15px;
+  background-position: 2px center;
+  background-repeat: no-repeat;
+}
+.viewer, .liker, .tagger, .mix_name { font-weight: bold; }
+.chat_view { background-image: url(../images/eye.png); }
+.chat_like { background-image: url(../images/heart.png); }
+.chat_tag { background-image: url(../images/tag.png); }
+
 /* Scrollbar */
 .jspVerticalBar { width: 10px; }
 .chat .jspDrag { background-color: #9bb3bd; }

@@ -233,7 +233,7 @@ function addMessage (from, text, time, _class) {
     messageElement.addClass("personal");
 
   var content = '<p class="thumb"><img src="' + util.toStaticHTML(from.pic) + '"></p>'
-              + '<p class="feed_text"><a href="#" class="name">' + util.toStaticHTML(from.nick) + '</a>: '
+              + '<p class="feed_text"><span class="name">' + util.toStaticHTML(from.nick) + '</span><span class="colon">: </span>'
               + text + ' <span class="smaller">' + util.timeString(time) + '</span></p>';
 
   messageElement.html(content);
@@ -276,11 +276,16 @@ function longPoll (data) {
       //dispatch new messages to their appropriate handlers
       switch (message.type) {
         case "msg":
+         if(!CONFIG.focus){
+            CONFIG.unread++;
+          }
+          addMessage(message.profile, message.text, message.timestamp);
+          break;
         case "rmsg":
           if(!CONFIG.focus){
             CONFIG.unread++;
           }
-          addMessage(message.profile, message.text, message.timestamp);
+          addMessage(message.profile, message.text, message.timestamp, "activity");
           break;
 
         case "join":
@@ -389,7 +394,8 @@ function outputUsers () {
   var users = profiles.map(function(profile) {
     return profile.nick;
   }).join(", ");
-  addMessage({nick:"users",pic:"#"}, users, new Date(), "notice");
+  users = "online: " + users;
+  addMessage({nick:"",pic:"#"}, users, new Date(), "activity");
   return false;
 }
 
