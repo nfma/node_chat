@@ -30,7 +30,7 @@ var channel = new function () {
 
   this.appendMessage = function (profile, type, text) {
     var m = { profile: profile
-            , type: type // "rmsg", "msg", "join", "part"
+            , type: type // "rmsg", "msg", "join", "part", "ping"
             , text: text
             , timestamp: (new Date()).getTime()
             };
@@ -48,10 +48,18 @@ var channel = new function () {
       case "part":
         sys.puts(profile.nick + " part");
         break;
+      case "ping":
+        // do not want to print every ping from every client
+        sys.puts(profile.nick + " ping");
+        break;
     }
 
     messages.push( m );
-    db.log(m.profile.nick, m.text, new Date(), m.type, size);
+
+    // ping messages are not interesting to store
+    if (type != 'ping') {
+      db.log(m.profile.nick, m.text, new Date(), m.type, size);
+    }
 
     while (callbacks.length > 0) {
       callbacks.shift().callback([m]);
@@ -231,5 +239,20 @@ fu.get("/rsend", function (req, res) {
   session.poke();
 
   channel.appendMessage(session.profile, "rmsg", pqs.text);
+  res.simpleJSON(200, {});
+});
+
+fu.get("/ping", function (req, res) {
+  var pqs = qs.parse(url.parse(req.url).query);
+
+  var session = sessions[pqs.id];
+  if (!session || !pqs.text) {
+    res.simpleJSON(400, { error: "No such session id" });
+    return;
+  }
+
+  session.poke();
+
+  channel.appendMessage(session.profile, "test");
   res.simpleJSON(200, {});
 });
