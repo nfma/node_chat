@@ -98,7 +98,7 @@ function createSession (profile) {
   for (var i in sessions) {
     var session = sessions[i];
     if (session && session.profile && session.profile.nick === profile.nick)
-      session.profile = profile; // update profile in case the user has changed his picture
+      session.profile.pic = profile.pic; // update profile in case the user has changed his picture
       return session;
   }
 
