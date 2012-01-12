@@ -50,7 +50,7 @@ var channel = new function () {
         break;
       case "ping":
         // do not want to print every ping from every client
-        sys.puts(profile.nick + " ping");
+        // sys.puts(profile.nick + " ping");
         break;
     }
 
@@ -94,10 +94,11 @@ var channel = new function () {
 var sessions = {};
 
 function createSession (profile) {
-  // unfortunately can't find a good functinal replacement for this
+  // unfortunately can't find a good functional replacement for this
   for (var i in sessions) {
     var session = sessions[i];
     if (session && session.profile && session.profile.nick === profile.nick)
+      session.profile = profile; // update profile in case the user has changed his picture
       return session;
   }
 
@@ -138,6 +139,7 @@ fu.get("/", fu.staticHandler("index.html"));
 fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
+fu.get("/jquery.ba-postmessage.min.js", fu.staticHandler("jquery.ba-postmessage.min.js"));
 fu.get("/jquery.jscrollpane.js", fu.staticHandler("jquery.jscrollpane.js"));
 fu.get("/jquery.jscrollpane.css", fu.staticHandler("jquery.jscrollpane.css"));
 fu.get("/images/user_thumb.png", fu.staticHandler("images/user_thumb.png"));
