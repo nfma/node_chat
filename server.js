@@ -97,9 +97,10 @@ function createSession (profile) {
   // unfortunately can't find a good functional replacement for this
   for (var i in sessions) {
     var session = sessions[i];
-    if (session && session.profile && session.profile.nick === profile.nick)
-      session.profile.pic = profile.pic; // update profile in case the user has changed his picture
+    if (session && session.profile && session.profile.nick === profile.nick) {
+      session.profile.pic = profile.pic;
       return session;
+    }
   }
 
   var session = { 
