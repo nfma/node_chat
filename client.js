@@ -502,6 +502,6 @@ $(window).unload(function () {
 
 function goTo(url) {
   app = window.location.href;
-  app = app.search('localhost') == - 1 ? 'http://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
+  app = app.search('localhost') == - 1 ? 'https://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
   $.postMessage(url, app, parent);
 };
