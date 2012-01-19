@@ -500,4 +500,8 @@ $(window).unload(function () {
   jQuery.get("/part", {id: CONFIG.id}, function (data) { }, "json");
 });
 
-// reload page every 10s
+function goTo(url) {
+  app = window.location.href;
+  app = app.search('localhost') == - 1 ? 'http://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
+  $.postMessage(url, app, parent);
+};

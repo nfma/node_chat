@@ -121,7 +121,6 @@ function createSession (profile) {
 
   sessions[session.id] = session;
   size++;
-  sys.puts("id:" + session.id);
   return session;
 }
 
@@ -141,6 +140,7 @@ fu.get("/style.css", fu.staticHandler("style.css"));
 fu.get("/client.js", fu.staticHandler("client.js"));
 fu.get("/jquery-1.2.6.min.js", fu.staticHandler("jquery-1.2.6.min.js"));
 fu.get("/jquery.ba-postmessage.min.js", fu.staticHandler("jquery.ba-postmessage.min.js"));
+fu.get("/jquery.ba-postmessage.js", fu.staticHandler("jquery.ba-postmessage.js"));
 fu.get("/jquery.jscrollpane.js", fu.staticHandler("jquery.jscrollpane.js"));
 fu.get("/jquery.jscrollpane.css", fu.staticHandler("jquery.jscrollpane.css"));
 fu.get("/images/user_thumb.png", fu.staticHandler("images/user_thumb.png"));
@@ -249,7 +249,7 @@ fu.get("/ping", function (req, res) {
   var pqs = qs.parse(url.parse(req.url).query);
 
   var session = sessions[pqs.id];
-  if (!session || !pqs.text) {
+  if (!session || !pqs.id) {
     res.simpleJSON(400, { error: "No such session id" });
     return;
   }
