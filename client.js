@@ -362,7 +362,7 @@ function showLoad () {
 
 function updatePicture (profile) {
   // somehow this gets into an infinite loop without this test
-  if(CONFIG.profile.pic != profile.pic) {
+  if(CONFIG.profile.id == profile.id && CONFIG.profile.pic != profile.pic) {
     CONFIG.profile.pic = profile.pic;
     window.location.href = window.location.href.replace(/pic=[^&]+/, 'pic=' + profile.pic);
   }
