@@ -52,6 +52,9 @@ var channel = new function () {
         // do not want to print every ping from every client
         // sys.puts(profile.nick + " ping");
         break;
+      case "picture":
+        // we don't care when a user changes its picture
+        break;
     }
 
     messages.push( m );
@@ -98,7 +101,10 @@ function createSession (profile) {
   for (var i in sessions) {
     var session = sessions[i];
     if (session && session.profile && session.profile.nick === profile.nick) {
-      session.profile.pic = profile.pic;
+      if( session.profile.pic != profile.pic) {
+        session.profile.pic = profile.pic;
+        channel.appendMessage(session.profile, "picture", "");
+      }
       return session;
     }
   }

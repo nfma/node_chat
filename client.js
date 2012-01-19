@@ -253,9 +253,6 @@ function addMessage (from, text, time, _class) {
       verticalDragMaxHeight: 100
     }
   );
-
-  //always view the most recent message when it is added
-  //scrollDown();
 }
 
 var transmission_errors = 0;
@@ -306,6 +303,10 @@ function longPoll (data) {
         case "ping":
           rcvPing(message.profile, message.timestamp);
           break;
+
+        case "picture":
+          updatePicture(message.profile);
+          break;
       }
     });
 
@@ -323,8 +324,6 @@ function longPoll (data) {
          , dataType: "json"
          , data: { since: CONFIG.last_message_time, id: CONFIG.id }
          , error: function () {
-             // not necessary anymore
-             //addMessage({nick:'error',pic:''}, "long poll error. trying again...", new Date(), "error");
              transmission_errors += 1;
              //don't flood the servers on error, wait 10 seconds before retrying
              setTimeout(longPoll, 10*1000);
@@ -359,6 +358,14 @@ function sendPing() {
 function showLoad () {
   $("#loading").show();
   $("#toolbar").hide();
+}
+
+function updatePicture (profile) {
+  // somehow this gets into an infinite loop without this test
+  if(CONFIG.profile.pic != profile.pic) {
+    CONFIG.profile.pic = profile.pic;
+    window.location.href = window.location.href.replace(/pic=[^&]+/, 'pic=' + profile.pic);
+  }
 }
 
 //transition the page to the main chat view, putting the cursor in the textfield
