@@ -467,7 +467,7 @@ function userUsedChat() {
   // tell the top app that the user used the chat
   if (CONFIG.profile.has_chatted == "false") {
     CONFIG.profile.has_chatted = "true";
-    parent.chatUsed();
+    $.postMessage("chat used", appUrl(), parent);
   }
 }
 
@@ -508,7 +508,10 @@ $(window).unload(function () {
 });
 
 function goTo(url) {
-  app = window.location.href;
-  app = app.search('localhost') == - 1 ? 'https://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
-  $.postMessage(url, app, parent);
+  $.postMessage(url, appUrl(), parent);
 };
+
+function appUrl() {
+  app = window.location.href;
+  return app.search('localhost') == - 1 ? 'https://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
+}
