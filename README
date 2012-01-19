@@ -18,4 +18,4 @@ user = serious
 password = beats
 
 to run the chat app
-$ node server.js (runs on port 8001)
+$ node server.js (runs on port 5000)
