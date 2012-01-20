@@ -240,7 +240,7 @@ function addMessage (from, text, time, _class) {
     messageElement.addClass("personal");
 
   var content = '<p class="thumb"><img src="' + util.toStaticHTML(from.pic) + '"></p>'
-              + '<p class="feed_text"><span class="name">' + util.toStaticHTML(from.nick) + '</span><span class="colon">: </span>'
+              + '<p class="feed_text"><span class="name"><a href="javascript:goTo(\'/users/' + from.id + '\');">' + util.toStaticHTML(from.nick) + '<a></span><span class="colon">: </span>'
               + text + ' <span class="smaller">' + util.timeString(time) + '</span></p>';
 
   messageElement.html(content);
