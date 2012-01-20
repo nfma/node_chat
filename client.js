@@ -419,7 +419,7 @@ function onConnect (session) {
 //add a list of present chat members to the stream
 function outputUsers () {
   var users = profiles.map(function(profile) {
-    return profile.nick;
+    return '<a href="javascript:goTo(\'/users/' + profile.id + '\');">' + profile.nick + '<a>';
   }).join(", ");
   users = "online: " + users;
   addMessage({nick:"",pic:"#"}, users, new Date(), "activity");
