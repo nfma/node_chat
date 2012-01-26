@@ -513,5 +513,5 @@ function goTo(url) {
 
 function appUrl() {
   app = window.location.href;
-  return app.search('localhost') == - 1 ? 'https://serious-beats.herokuapp.com/' : 'http://localhost:3000/';
+  return app.search('localhost') == - 1 ? 'https://your-turn.herokuapp.com/' : 'http://localhost:3000/';
 }
