@@ -513,5 +513,5 @@ function goTo(url) {
 
 function appUrl() {
   app = window.location.href;
-  return app.search('localhost') == - 1 ? 'https://www.your-turn.fm/' : 'http://localhost:3000/';
+  return app.search('localhost') == - 1 ? 'https://www.yourturn.fm/' : 'http://localhost:3000/';
 }
