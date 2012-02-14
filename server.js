@@ -262,6 +262,6 @@ fu.get("/ping", function (req, res) {
 
   session.poke();
 
-  channel.appendMessage(session.profile, "test");
+  channel.appendMessage(session.profile, "ping");
   res.simpleJSON(200, {});
 });
