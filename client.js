@@ -149,7 +149,7 @@ function userPart(profile, timestamp) {
 
 //handles pings
 function rcvPing(profile, timestamp) {
-  //addMessage(profile, "ping", timestamp, "ping");
+  // ignore pings
 }
 
 // utility functions

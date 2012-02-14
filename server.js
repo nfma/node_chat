@@ -57,7 +57,10 @@ var channel = new function () {
         break;
     }
 
-    messages.push( m );
+    // do not push pings into the chat messages otherwise they will disappear
+    if (type != 'ping' {
+      messages.push( m );
+    }
 
     // ping messages are not interesting to store
     if (type != 'ping') {
