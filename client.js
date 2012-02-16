@@ -1,5 +1,4 @@
-var CONFIG = { debug: false
-             , profile: "#"   // set in onConnect
+var CONFIG = { profile: "#"   // set in onConnect
              , id: null    // set in onConnect
              , last_message_time: 1
              , focus: true //event listeners bound in onConnect
@@ -190,7 +189,8 @@ util = {
 
   parseUrlParameters: function(url) { 
     var result = {}; 
-    var parameters = /https?:\/\/[-\w\.]+(:\d+)?(\/[^\s?]*(\?(\S+))?)?/g.exec(url)[4].split("&"); 
+    // IE leaves spaces in the urls
+    var parameters = /https?:\/\/[-\w\.]+(:\d+)?(\/([^?]*)\?(.*))?/g.exec(url)[4].split("&"); 
     for (k in parameters) { 
       var kva = parameters[k].split("="); 
       result[kva[0]] = kva[1];
@@ -487,14 +487,7 @@ $(document).ready(function() {
 
   updateUsersLink();
 
-  if (CONFIG.debug) {
-    $("#loading").hide();
-    //scrollDown();
-    return;
-  }
-
   connect();
-  
   
   //begin listening for updates right away
   //interestingly, we don't need to join a room to get its updates
