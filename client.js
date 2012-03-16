@@ -439,7 +439,11 @@ function connect() {
   showLoad();
 
   var params = util.parseUrlParameters(window.location);
-  if (params.nick && params.pic && params.id && params.has_chatted) {
+
+  // place the localised text
+  i18n(params.locale);
+
+  if (params.nick && params.pic && params.id && params.has_chatted && params.locale) {
     //make the actual join request to the server
     $.ajax({ cache: false
            , type: "GET" // XXX should be POST
@@ -454,6 +458,7 @@ function connect() {
   }
   // output the online users nicks when clicking on the number of users
   $("#usersLink").click(outputUsers);
+
   return false;
 }
 
@@ -472,7 +477,6 @@ function userUsedChat() {
 }
 
 $(document).ready(function() {
-
   //submit new messages when the user hits enter if the message isnt blank
   $("#entry").keypress(function (e) {
     if (e.keyCode != 13 /* Return */) return;
@@ -507,4 +511,14 @@ function goTo(url) {
 function appUrl() {
   app = window.location.href;
   return app.search('localhost') == - 1 ? 'https://www.yourturn.fm/' : 'http://localhost:3000/';
+}
+
+function i18n(locale) {
+  if (locale == "de") {
+    $('#title').text("Chat & Aktivitäten")
+    $('#post').text("Posten")
+  } else {
+    $('#title').text("Chat & Activities")
+    $('#post').text("Post")
+  }
 }
